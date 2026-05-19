@@ -367,8 +367,9 @@ def main():
     # Output path
     output_path = args.output or audio_path.stem + "_transcript.txt"
 
-    # Step 1: Transcribe (with cache to avoid re-running on retry)
-    cache_path = audio_path.with_suffix(".whisper.json")
+    # Step 1: Transcribe (cache is keyed on audio path + model to avoid stale hits)
+    model_slug = args.model.replace("/", "_").replace("-", "_")
+    cache_path = audio_path.with_name(audio_path.stem + f".{model_slug}.whisper.json")
     if cache_path.exists():
         import json
         print(f"💨 Loading cached transcription from {cache_path}")
