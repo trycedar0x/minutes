@@ -1,9 +1,8 @@
 import SwiftUI
 import WhisperDiarizeCore
 
-// Palette — one color per speaker index
 private let speakerPalette: [Color] = [
-    .blue, .green, .orange, .purple, .pink, .teal, .indigo, .cyan
+    AppDesign.Palette.accent, AppDesign.Palette.amber, AppDesign.Palette.rose, .blue, .teal, .indigo, .pink, .cyan
 ]
 
 struct TranscriptView: View {
@@ -26,72 +25,119 @@ struct TranscriptView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Stats + filter bar
-            HStack(spacing: 12) {
-                Label("\(runner.transcript.count) lines", systemImage: "text.alignleft")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        HStack(spacing: 0) {
+            TranscriptSidebar(
+                lineCount: runner.transcript.count,
+                visibleCount: filtered.count,
+                speakers: speakers,
+                selectedSpeaker: $selectedSpeaker
+            )
+            .frame(width: AppDesign.Layout.sidebarWidth)
 
-                Label("\(speakers.count) speakers", systemImage: "person.2")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            VStack(spacing: 0) {
+                TranscriptToolbar(searchText: $searchText)
+                    .padding(.horizontal, AppDesign.Spacing.xl)
+                    .padding(.vertical, AppDesign.Spacing.lg)
 
-                Divider().frame(height: 16)
+                Divider()
 
-                // Speaker filter pills
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
-                        FilterPill(label: "All", isSelected: selectedSpeaker == nil) {
-                            selectedSpeaker = nil
-                        }
-                        ForEach(Array(speakers.enumerated()), id: \.element) { i, spk in
-                            FilterPill(
-                                label: spk,
-                                color: speakerPalette[i % speakerPalette.count],
-                                isSelected: selectedSpeaker == spk
-                            ) {
-                                selectedSpeaker = selectedSpeaker == spk ? nil : spk
-                            }
+                ScrollView(.vertical) {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        ForEach(filtered) { line in
+                            TranscriptLineRow(line: line)
+                            Divider().padding(.leading, AppDesign.Layout.timestampWidth - AppDesign.Spacing.lg)
                         }
                     }
+                    .padding(.vertical, AppDesign.Spacing.sm)
                 }
-
-                Spacer()
-
-                // Search
-                HStack {
-                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary).font(.caption)
-                    TextField("Search…", text: $searchText)
-                        .textFieldStyle(.plain)
-                        .font(.caption)
-                        .frame(width: 140)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(.regularMaterial)
-
-            Divider()
-
-            // Transcript lines
-            ScrollView(.vertical) {
-                LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(filtered) { line in
-                        TranscriptLineRow(line: line)
-                        Divider().padding(.leading, 56)
-                    }
-                }
-                .padding(.vertical, 8)
+                .background(Color(nsColor: .textBackgroundColor).opacity(0.45))
             }
         }
     }
 }
 
-struct TranscriptLineRow: View {
+private struct TranscriptSidebar: View {
+    let lineCount: Int
+    let visibleCount: Int
+    let speakers: [String]
+    @Binding var selectedSpeaker: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppDesign.Spacing.xl) {
+            VStack(alignment: .leading, spacing: AppDesign.Spacing.sm) {
+                AppLogo(size: AppDesign.Layout.logo, showShadow: true)
+                Text("Transcript")
+                    .font(.headline)
+                Text("\(visibleCount) of \(lineCount) lines")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: AppDesign.Spacing.sm) {
+                Text("Speakers")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+
+                SpeakerFilterButton(
+                    label: "All speakers",
+                    color: .secondary,
+                    selected: selectedSpeaker == nil
+                ) {
+                    selectedSpeaker = nil
+                }
+
+                ForEach(Array(speakers.enumerated()), id: \.element) { index, speaker in
+                    SpeakerFilterButton(
+                        label: speaker,
+                        color: speakerPalette[index % speakerPalette.count],
+                        selected: selectedSpeaker == speaker
+                    ) {
+                        selectedSpeaker = selectedSpeaker == speaker ? nil : speaker
+                    }
+                }
+            }
+
+            Spacer()
+        }
+        .padding(AppDesign.Spacing.xl)
+        .background {
+            SidebarSurface { Color.clear }
+        }
+    }
+}
+
+private struct TranscriptToolbar: View {
+    @Binding var searchText: String
+
+    var body: some View {
+        HStack(spacing: AppDesign.Spacing.md) {
+            VStack(alignment: .leading, spacing: AppDesign.Spacing.xxs) {
+                Text("Review")
+                    .font(AppDesign.TypeScale.title3)
+                Text("Search speaker-labeled transcript.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            HStack(spacing: AppDesign.Spacing.sm) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField("Search transcript", text: $searchText)
+                    .textFieldStyle(.plain)
+                    .frame(width: AppDesign.Layout.searchWidth)
+            }
+            .padding(.horizontal, AppDesign.Spacing.md)
+            .padding(.vertical, AppDesign.Spacing.sm)
+            .background(AppDesign.Palette.selected, in: RoundedRectangle(cornerRadius: AppDesign.Radius.control, style: .continuous))
+        }
+    }
+}
+
+private struct TranscriptLineRow: View {
     let line: TranscriptLine
 
     private var color: Color {
@@ -99,56 +145,63 @@ struct TranscriptLineRow: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            // Speaker avatar
-            ZStack {
-                Circle()
-                    .fill(color.opacity(0.15))
-                    .frame(width: 32, height: 32)
-                Text(line.speaker.replacingOccurrences(of: "SPEAKER_", with: ""))
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
-                    .foregroundStyle(color)
-            }
+        HStack(alignment: .top, spacing: AppDesign.Spacing.lg) {
+            Text(line.timestamp)
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .frame(width: AppDesign.Layout.timestampWidth, alignment: .leading)
+                .textSelection(.enabled)
 
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: AppDesign.Spacing.xs) {
+                HStack(spacing: AppDesign.Spacing.sm) {
+                    Circle()
+                        .fill(color)
+                        .frame(width: AppDesign.Layout.speakerDot, height: AppDesign.Layout.speakerDot)
                     Text(line.speaker)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(color)
-                    Text(line.timestamp)
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .monospacedDigit()
                 }
+
                 Text(line.text)
                     .font(.body)
+                    .lineSpacing(2)
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            Spacer()
+            Spacer(minLength: AppDesign.Spacing.lg)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, AppDesign.Spacing.xl)
+        .padding(.vertical, AppDesign.Spacing.md)
         .contentShape(Rectangle())
     }
 }
 
-struct FilterPill: View {
+private struct SpeakerFilterButton: View {
     let label: String
-    var color: Color = .secondary
-    let isSelected: Bool
+    let color: Color
+    let selected: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text(label)
-                .font(.caption.weight(.medium))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(isSelected ? color.opacity(0.2) : Color.secondary.opacity(0.1),
-                            in: Capsule())
-                .foregroundStyle(isSelected ? color : .secondary)
+            HStack(spacing: AppDesign.Spacing.sm) {
+                Circle()
+                    .fill(color)
+                    .frame(width: AppDesign.Layout.speakerDot, height: AppDesign.Layout.speakerDot)
+                Text(label)
+                    .font(.callout.weight(selected ? .semibold : .regular))
+                    .lineLimit(1)
+                Spacer()
+                if selected {
+                    Image(systemName: "checkmark")
+                        .font(.caption.weight(.bold))
+                }
+            }
+            .padding(.horizontal, AppDesign.Spacing.md)
+            .padding(.vertical, AppDesign.Spacing.sm)
+            .background(selected ? color.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: AppDesign.Radius.control, style: .continuous))
+            .foregroundStyle(selected ? color : .secondary)
         }
         .buttonStyle(.plain)
     }

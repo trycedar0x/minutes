@@ -7,11 +7,11 @@ private struct Step {
 }
 
 private let steps: [Step] = [
-    Step(icon: "waveform",              title: "Transcribing",          subtitle: "mlx-whisper · Apple Silicon GPU"),
-    Step(icon: "person.2.wave.2.fill",  title: "Identifying Speakers",   subtitle: "pyannote · Metal"),
-    Step(icon: "arrow.triangle.merge",  title: "Merging",               subtitle: "Aligning words with speakers"),
-    Step(icon: "doc.text.fill",         title: "Saving",                subtitle: "Writing transcript file"),
-    Step(icon: "sparkles",              title: "Polishing",             subtitle: "LLM cleanup · Qwen2.5"),
+    Step(icon: "waveform", title: "Transcribing", subtitle: "Whisper speech recognition"),
+    Step(icon: "person.2.wave.2.fill", title: "Speakers", subtitle: "Finding speaker turns"),
+    Step(icon: "arrow.triangle.merge", title: "Aligning", subtitle: "Matching words to speakers"),
+    Step(icon: "doc.text.fill", title: "Saving", subtitle: "Writing transcript"),
+    Step(icon: "sparkles", title: "Polishing", subtitle: "Optional cleanup"),
 ]
 
 struct ProcessingView: View {
@@ -21,105 +21,68 @@ struct ProcessingView: View {
     @State private var timer: Timer?
 
     var body: some View {
-        VStack(spacing: 0) {
+        HStack(spacing: 0) {
+            ProgressRail(elapsedString: elapsedString)
+                .frame(width: AppDesign.Layout.sidebarWidth)
 
-            // ── Header ────────────────────────────────────────────────────
-            VStack(spacing: 6) {
-                Text(headerTitle)
-                    .font(.title3.weight(.semibold))
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut, value: headerTitle)
-
-                Text(elapsedString)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 24)
-            .background(.regularMaterial)
-
-            Divider()
-
-            // ── Step cards ────────────────────────────────────────────────
-            ScrollView {
-                VStack(spacing: 10) {
-                    ForEach(Array(steps.enumerated()), id: \.offset) { i, step in
-                        StepCard(
-                            step: step,
-                            index: i,
-                            currentStep: runner.currentStep,
-                            detail: runner.stepDetails[i],
-                            progress: runner.stepProgress[i]
-                        )
+            VStack(alignment: .leading, spacing: AppDesign.Spacing.xl) {
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: AppDesign.Spacing.xs) {
+                        Text(headerTitle)
+                            .font(AppDesign.TypeScale.screenTitle)
+                            .contentTransition(.numericText())
+                        Text("Large models may take a moment to load.")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
                     }
-                }
-                .padding(24)
-
-                // ── Collapsible log ───────────────────────────────────────
-                VStack(spacing: 0) {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) { showLog.toggle() }
+                    Spacer()
+                    Button(role: .destructive) {
+                        runner.cancel()
                     } label: {
-                        HStack {
-                            Image(systemName: showLog ? "chevron.down" : "chevron.right")
-                                .font(.caption)
-                            Text(showLog ? "Hide log" : "Show log")
-                                .font(.caption)
-                            Spacer()
-                            if showLog {
-                                Button {
-                                    NSPasteboard.general.clearContents()
-                                    NSPasteboard.general.setString(
-                                        runner.logLines.joined(separator: "\n"), forType: .string)
-                                } label: {
-                                    Label("Copy log", systemImage: "doc.on.doc")
-                                        .font(.caption)
-                                }
-                                .buttonStyle(.plain)
-                                .foregroundStyle(.secondary)
-                            } else {
-                                Text("\(runner.logLines.count) lines")
-                                    .font(.caption)
-                                    .foregroundStyle(.tertiary)
-                            }
-                        }
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 10)
-                    }
-                    .buttonStyle(.plain)
-
-                    if showLog {
-                        LogView()
-                            .frame(height: 180)
-                            .transition(.move(edge: .top).combined(with: .opacity))
+                        Label("Cancel", systemImage: "stop.circle")
                     }
                 }
+
+                Panel(padding: AppDesign.Spacing.xl) {
+                    VStack(spacing: AppDesign.Spacing.md) {
+                        ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                            StepRow(
+                                step: step,
+                                index: index,
+                                currentStep: runner.currentStep,
+                                detail: runner.stepDetails[index],
+                                progress: runner.stepProgress[index]
+                            )
+                        }
+                    }
+                }
+
+                LogPanel(showLog: $showLog)
             }
+            .padding(AppDesign.Spacing.xxl)
         }
         .onAppear(perform: startTimer)
         .onDisappear(perform: stopTimer)
     }
 
-    // MARK: - Helpers
-
     private var headerTitle: String {
-        if case .running(let p) = runner.state, !p.isEmpty { return p }
-        return "Processing\u{2026}"
+        if case .running(let phase) = runner.state, !phase.isEmpty { return phase }
+        return "Processing"
     }
 
     private var elapsedString: String {
-        guard elapsed > 0 else { return "Starting\u{2026}" }
-        let m = Int(elapsed) / 60
-        let s = Int(elapsed) % 60
-        return m > 0 ? "\(m)m \(s)s elapsed" : "\(s)s elapsed"
+        guard elapsed > 0 else { return "Starting" }
+        let minutes = Int(elapsed) / 60
+        let seconds = Int(elapsed) % 60
+        return minutes > 0 ? "\(minutes)m \(seconds)s" : "\(seconds)s"
     }
 
     private func startTimer() {
         elapsed = runner.startTime.map { Date().timeIntervalSince($0) } ?? 0
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            elapsed = runner.startTime.map { Date().timeIntervalSince($0) } ?? elapsed + 1
+            Task { @MainActor in
+                elapsed = runner.startTime.map { Date().timeIntervalSince($0) } ?? elapsed + 1
+            }
         }
     }
 
@@ -129,9 +92,38 @@ struct ProcessingView: View {
     }
 }
 
-// MARK: - Step Card
+private struct ProgressRail: View {
+    let elapsedString: String
 
-private struct StepCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppDesign.Spacing.xl) {
+            VStack(alignment: .leading, spacing: AppDesign.Spacing.sm) {
+                AppLogo(size: AppDesign.Layout.logo, showShadow: true)
+                Text("Processing")
+                    .font(.headline)
+                Text(elapsedString)
+                    .font(.system(.title3, design: .rounded).weight(.semibold))
+                    .monospacedDigit()
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: AppDesign.Spacing.md) {
+                MetricBadge(title: "Speech", value: "MLX Whisper", systemImage: "waveform", tint: AppDesign.accent)
+                MetricBadge(title: "Speakers", value: "pyannote", systemImage: "person.2", tint: AppDesign.amber)
+                MetricBadge(title: "Runtime", value: "Local", systemImage: "lock", tint: AppDesign.rose)
+            }
+
+            Spacer()
+        }
+        .padding(AppDesign.Spacing.xl)
+        .background {
+            SidebarSurface { Color.clear }
+        }
+    }
+}
+
+private struct StepRow: View {
     let step: Step
     let index: Int
     let currentStep: Int
@@ -145,86 +137,97 @@ private struct StepCard: View {
     }
 
     var body: some View {
-        HStack(spacing: 16) {
-            // Icon / status badge
+        HStack(spacing: AppDesign.Spacing.lg) {
             ZStack {
                 Circle()
-                    .fill(status.bgColor)
-                    .frame(width: 44, height: 44)
+                    .fill(status.tint.opacity(status == .pending ? 0.12 : 1))
+                    .frame(width: AppDesign.Layout.stepIcon, height: AppDesign.Layout.stepIcon)
+
                 if status == .active && progress == nil {
-                    ProgressView().scaleEffect(0.7).tint(.white)
-                } else if status == .done {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(.white)
+                    ProgressView()
+                        .scaleEffect(0.58)
+                        .tint(.white)
                 } else {
-                    Image(systemName: step.icon)
-                        .font(.system(size: 16))
-                        .foregroundStyle(status.iconColor)
+                    Image(systemName: status == .done ? "checkmark" : step.icon)
+                        .font(AppDesign.TypeScale.smallIcon)
+                        .foregroundStyle(status == .pending ? Color.secondary : Color.white)
                 }
             }
-            .animation(.easeInOut, value: status)
 
-            // Title + subtitle + progress bar inline
-            VStack(alignment: .leading, spacing: 5) {
+            VStack(alignment: .leading, spacing: AppDesign.Spacing.xs) {
                 HStack {
                     Text(step.title)
                         .font(.body.weight(status == .active ? .semibold : .regular))
-                        .foregroundStyle(status == .pending ? .secondary : .primary)
                     Spacer()
-                    // Status badge
-                    if status == .active {
-                        if let p = progress {
-                            Text("\(Int(p * 100))%")
-                                .font(.caption.weight(.semibold).monospacedDigit())
-                                .foregroundStyle(Color.accentColor)
-                                .padding(.horizontal, 8).padding(.vertical, 3)
-                                .background(Color.accentColor.opacity(0.12), in: Capsule())
-                        } else {
-                            Text("In progress")
-                                .font(.caption.weight(.medium))
-                                .foregroundStyle(Color.accentColor)
-                                .padding(.horizontal, 8).padding(.vertical, 3)
-                                .background(Color.accentColor.opacity(0.12), in: Capsule())
-                        }
-                    } else if status == .done {
-                        Text("Done")
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(.green)
-                            .padding(.horizontal, 8).padding(.vertical, 3)
-                            .background(Color.green.opacity(0.12), in: Capsule())
-                    }
+                    Text(statusLabel)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(status.tint)
+                        .monospacedDigit()
                 }
 
                 Text(detail ?? step.subtitle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                // Progress bar — always shown at bottom of card
-                if let p = progress {
-                    ProgressView(value: p)
-                        .progressViewStyle(.linear)
-                        .tint(status == .done ? .green : Color.accentColor)
-                        .animation(.linear(duration: 0.25), value: p)
-                } else if status == .active {
-                    ProgressView()
-                        .progressViewStyle(.linear)
-                        .tint(Color.accentColor)
-                }
+                ProgressView(value: displayedProgress)
+                    .progressViewStyle(.linear)
+                    .tint(status.tint)
+                    .opacity(status == .pending ? 0.25 : 1)
             }
         }
-        .padding(16)
-        .background(.background, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(status == .active ? Color.accentColor.opacity(0.4) : .clear, lineWidth: 1.5)
-        )
-        .shadow(color: .black.opacity(status == .active ? 0.06 : 0.02), radius: status == .active ? 8 : 2, y: 2)
-        .animation(.easeInOut, value: status)
+        .padding(AppDesign.Spacing.md)
+        .background(status == .active ? AppDesign.accent.opacity(0.06) : Color.clear, in: RoundedRectangle(cornerRadius: AppDesign.Radius.control, style: .continuous))
+    }
+
+    private var displayedProgress: Double {
+        if let progress { return progress }
+        if status == .done { return 1 }
+        return 0
+    }
+
+    private var statusLabel: String {
+        if status == .done { return "Done" }
+        if status == .active {
+            if let progress { return "\(Int(progress * 100))%" }
+            return "Active"
+        }
+        return "Waiting"
     }
 }
 
-// MARK: - Log View
+private struct LogPanel: View {
+    @EnvironmentObject private var runner: TranscriptionRunner
+    @Binding var showLog: Bool
+
+    var body: some View {
+        Panel(padding: 0) {
+            VStack(spacing: 0) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.18)) { showLog.toggle() }
+                } label: {
+                    HStack {
+                        Label(showLog ? "Hide log" : "Show log", systemImage: showLog ? "chevron.down" : "chevron.right")
+                            .font(.caption.weight(.medium))
+                        Spacer()
+                        Text("\(runner.logLines.count) lines")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, AppDesign.Spacing.lg)
+                    .padding(.vertical, AppDesign.Spacing.md)
+                }
+                .buttonStyle(.plain)
+
+                if showLog {
+                    Divider()
+                    LogView()
+                        .frame(height: AppDesign.Layout.logHeight)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+        }
+    }
+}
 
 private struct LogView: View {
     @EnvironmentObject private var runner: TranscriptionRunner
@@ -232,17 +235,17 @@ private struct LogView: View {
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 1) {
-                    ForEach(Array(runner.logLines.enumerated()), id: \.offset) { i, line in
+                LazyVStack(alignment: .leading, spacing: 2) {
+                    ForEach(Array(runner.logLines.enumerated()), id: \.offset) { index, line in
                         Text(line)
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(AppDesign.TypeScale.monoLog)
                             .foregroundStyle(logColor(for: line))
                             .textSelection(.enabled)
-                            .id(i)
+                            .id(index)
                     }
                     Color.clear.frame(height: 1).id("bottom")
                 }
-                .padding(10)
+                .padding(AppDesign.Spacing.md)
             }
             .background(Color(nsColor: .textBackgroundColor))
             .onChange(of: runner.logLines.count) { _, _ in
@@ -252,32 +255,20 @@ private struct LogView: View {
     }
 
     private func logColor(for line: String) -> Color {
-        if line.hasPrefix("✅") { return .green }
-        if line.hasPrefix("❌") || line.lowercased().contains("error") { return .red }
-        if line.hasPrefix("🎙️") || line.hasPrefix("👥") || line.hasPrefix("🔀") ||
-           line.hasPrefix("💾") || line.hasPrefix("💨") { return Color.accentColor }
+        if line.lowercased().contains("error") { return AppDesign.rose }
+        if line.hasPrefix("APP_PROGRESS") { return AppDesign.accent }
         return .secondary
     }
 }
 
-// MARK: - Step Status
-
-private enum StepStatus: Equatable {
+private enum StepStatus {
     case pending, active, done
 
-    var bgColor: Color {
+    var tint: Color {
         switch self {
-        case .pending: return Color.secondary.opacity(0.2)
-        case .active:  return Color.accentColor
-        case .done:    return Color.green
-        }
-    }
-
-    var iconColor: Color {
-        switch self {
-        case .pending: return Color(nsColor: .tertiaryLabelColor)
-        case .active:  return .white
-        case .done:    return .white
+        case .pending: return .secondary
+        case .active: return AppDesign.accent
+        case .done: return .green
         }
     }
 }

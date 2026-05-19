@@ -5,28 +5,55 @@ struct ErrorView: View {
     let message: String
 
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(.red)
-
-            Text("Transcription Failed")
-                .font(.title2.weight(.semibold))
-
-            Text(message)
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 400)
-
-            HStack(spacing: 12) {
-                Button("Show Log") { runner.state = .running(phase: "") }
-                    .buttonStyle(.bordered)
-                Button("Try Again") { runner.reset() }
-                    .buttonStyle(.borderedProminent)
+        HStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: AppDesign.Spacing.xl) {
+                AppLogo(size: AppDesign.Layout.logo, showShadow: true)
+                Text("Run failed")
+                    .font(.headline)
+                Text("Transcript not completed.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
             }
+            .frame(minWidth: AppDesign.Layout.sidebarWidth, idealWidth: AppDesign.Layout.sidebarWidth, maxWidth: AppDesign.Layout.sidebarWidth, maxHeight: .infinity, alignment: .topLeading)
+            .padding(AppDesign.Spacing.xl)
+            .background {
+                SidebarSurface { Color.clear }
+            }
+
+            VStack(alignment: .leading, spacing: AppDesign.Spacing.xl) {
+                Panel {
+                    VStack(alignment: .leading, spacing: AppDesign.Spacing.md) {
+                        Text("Couldn’t finish transcription")
+                            .font(AppDesign.TypeScale.screenTitle)
+
+                        Text(message)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        HStack(spacing: AppDesign.Spacing.md) {
+                            Button {
+                                runner.state = .running(phase: "")
+                            } label: {
+                                Label("Show Log", systemImage: "terminal")
+                            }
+                            .buttonStyle(.bordered)
+
+                            Button {
+                                runner.reset()
+                            } label: {
+                                Label("Try Again", systemImage: "arrow.counterclockwise")
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                        .padding(.top, AppDesign.Spacing.xs)
+                    }
+                }
+                Spacer()
+            }
+            .padding(AppDesign.Spacing.xxl)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(40)
     }
 }

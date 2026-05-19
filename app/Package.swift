@@ -17,6 +17,8 @@ let package = Package(
             dependencies: ["WhisperDiarizeCore"],
             path: "Sources/WhisperDiarize",
             resources: [
+                .copy("Resources/AppIcon.icns"),
+                .copy("Resources/AppIcon.png"),
                 .copy("Resources/transcribe.py"),
                 .copy("Resources/pyproject.toml"),
                 .copy("Resources/uv.lock"),

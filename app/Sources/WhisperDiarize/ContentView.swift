@@ -5,7 +5,7 @@ struct ContentView: View {
     @AppStorage("hfToken") private var hfToken = ""
 
     var body: some View {
-        Group {
+        AppShell {
             switch runner.state {
             case .idle:
                 DropZoneView()
@@ -17,7 +17,7 @@ struct ContentView: View {
                 ErrorView(message: message)
             }
         }
-        .frame(minWidth: 700, minHeight: 500)
+        .frame(minWidth: 860, minHeight: 560)
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
                 if case .done = runner.state {
@@ -42,7 +42,7 @@ struct ContentView: View {
                 }
                 if case .done = runner.state {
                     Button { Task { await runner.reprocess() } } label: {
-                        Label("Force Reprocess", systemImage: "arrow.clockwise")
+                        Label("Reprocess", systemImage: "arrow.clockwise")
                     }
                     Button {
                         runner.reset()
@@ -52,7 +52,7 @@ struct ContentView: View {
                 }
                 if case .failed = runner.state {
                     Button { Task { await runner.reprocess() } } label: {
-                        Label("Force Reprocess", systemImage: "arrow.clockwise")
+                        Label("Reprocess", systemImage: "arrow.clockwise")
                     }
                     Button {
                         runner.reset()
