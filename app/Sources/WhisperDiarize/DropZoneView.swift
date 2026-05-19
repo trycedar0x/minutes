@@ -34,7 +34,7 @@ struct DropZoneView: View {
                 VStack(spacing: 16) {
                     Image(systemName: "waveform.circle.fill")
                         .font(.system(size: 56))
-                        .foregroundStyle(isTargeted ? .accent : .secondary)
+                        .foregroundStyle(isTargeted ? Color.accentColor : .secondary)
                         .animation(.easeInOut(duration: 0.15), value: isTargeted)
 
                     Text("Drop audio here")

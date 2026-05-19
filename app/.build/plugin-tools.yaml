@@ -1,0 +1,104 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "PackageStructure": ["<PackageStructure>"]
+  "WhisperDiarize-arm64-apple-macosx26.0-debug.exe": ["<WhisperDiarize-arm64-apple-macosx26.0-debug.exe>"]
+  "WhisperDiarize-arm64-apple-macosx26.0-debug.module": ["<WhisperDiarize-arm64-apple-macosx26.0-debug.module>"]
+  "main": ["<WhisperDiarize-arm64-apple-macosx26.0-debug.exe>","<WhisperDiarize-arm64-apple-macosx26.0-debug.module>"]
+  "test": ["<WhisperDiarize-arm64-apple-macosx26.0-debug.exe>","<WhisperDiarize-arm64-apple-macosx26.0-debug.module>"]
+default: "main"
+nodes:
+  "/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+  "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize":
+    is-mutated: true
+commands:
+  "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize-entitlement.plist":
+    tool: write-auxiliary-file
+    inputs: ["<entitlement-plist>","<com.apple.security.get-task-allow>"]
+    outputs: ["/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize-entitlement.plist"]
+    description: "Write auxiliary file /Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize-entitlement.plist"
+
+  "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/App.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/ContentView.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/DropZoneView.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/ErrorView.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/ProcessingView.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/SettingsView.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/TranscriptView.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/TranscriptionRunner.swift","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/DerivedSources/resource_bundle_accessor.swift"]
+    outputs: ["/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/sources"]
+    description: "Write auxiliary file /Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/sources"
+
+  "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.product/Objects.LinkFileList":
+    tool: write-auxiliary-file
+    inputs: ["<link-file-list>","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/App.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ContentView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/DropZoneView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ErrorView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ProcessingView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/SettingsView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptionRunner.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/resource_bundle_accessor.swift.o"]
+    outputs: ["/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.product/Objects.LinkFileList"]
+    description: "Write auxiliary file /Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.product/Objects.LinkFileList"
+
+  "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize_WhisperDiarize.bundle/pyproject.toml":
+    tool: copy-tool
+    inputs: ["/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/Resources/pyproject.toml"]
+    outputs: ["/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize_WhisperDiarize.bundle/pyproject.toml"]
+    description: "Copying /Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/Resources/pyproject.toml"
+
+  "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize_WhisperDiarize.bundle/transcribe.py":
+    tool: copy-tool
+    inputs: ["/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/Resources/transcribe.py"]
+    outputs: ["/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize_WhisperDiarize.bundle/transcribe.py"]
+    description: "Copying /Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/Resources/transcribe.py"
+
+  "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize_WhisperDiarize.bundle/uv.lock":
+    tool: copy-tool
+    inputs: ["/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/Resources/uv.lock"]
+    outputs: ["/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize_WhisperDiarize.bundle/uv.lock"]
+    description: "Copying /Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/Resources/uv.lock"
+
+  "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"]
+    outputs: ["/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+
+  "<WhisperDiarize-arm64-apple-macosx26.0-debug.exe>":
+    tool: phony
+    inputs: ["<WhisperDiarize-arm64-apple-macosx26.0-debug.exe-CodeSigning>"]
+    outputs: ["<WhisperDiarize-arm64-apple-macosx26.0-debug.exe>"]
+
+  "<WhisperDiarize-arm64-apple-macosx26.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/App.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ContentView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/DropZoneView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ErrorView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ProcessingView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/SettingsView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptionRunner.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/resource_bundle_accessor.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/Modules/WhisperDiarize.swiftmodule"]
+    outputs: ["<WhisperDiarize-arm64-apple-macosx26.0-debug.module>"]
+
+  "C.WhisperDiarize-arm64-apple-macosx26.0-debug.exe":
+    tool: shell
+    inputs: ["/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/App.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ContentView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/DropZoneView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ErrorView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ProcessingView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/SettingsView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptionRunner.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/resource_bundle_accessor.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.product/Objects.LinkFileList"]
+    outputs: ["/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize"]
+    description: "Linking ./.build/arm64-apple-macosx/debug/WhisperDiarize"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-L","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug","-o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize","-module-name","WhisperDiarize","-Xlinker","-no_warn_duplicate_libraries","-emit-executable","-Xlinker","-alias","-Xlinker","_WhisperDiarize_main","-Xlinker","_main","-Xlinker","-rpath","-Xlinker","@loader_path","@/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.product/Objects.LinkFileList","-Xlinker","-rpath","-Xlinker","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx","-target","arm64-apple-macosx14.0","-Xlinker","-add_ast_path","-Xlinker","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/Modules/WhisperDiarize.swiftmodule","-plugin-path","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g"]
+
+  "C.WhisperDiarize-arm64-apple-macosx26.0-debug.exe-entitlements":
+    tool: shell
+    inputs: ["/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize-entitlement.plist"]
+    outputs: ["<WhisperDiarize-arm64-apple-macosx26.0-debug.exe-CodeSigning>"]
+    description: "Applying debug entitlements to ./.build/arm64-apple-macosx/debug/WhisperDiarize"
+    args: ["codesign","--force","--sign","-","--entitlements","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize-entitlement.plist","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize"]
+
+  "C.WhisperDiarize-arm64-apple-macosx26.0-debug.module":
+    tool: shell
+    inputs: ["/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/App.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/ContentView.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/DropZoneView.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/ErrorView.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/ProcessingView.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/SettingsView.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/TranscriptView.swift","/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/TranscriptionRunner.swift","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/DerivedSources/resource_bundle_accessor.swift","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt","<WhisperDiarize-arm64-apple-macosx26.0-debug.module-resources>","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/sources"]
+    outputs: ["/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/App.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ContentView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/DropZoneView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ErrorView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ProcessingView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/SettingsView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptView.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptionRunner.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/resource_bundle_accessor.swift.o","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/Modules/WhisperDiarize.swiftmodule"]
+    description: "Compiling Swift Module 'WhisperDiarize' (9 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","WhisperDiarize","-emit-dependencies","-emit-module","-emit-module-path","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/Modules/WhisperDiarize.swiftmodule","-output-file-map","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/output-file-map.json","-incremental","-c","@/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/sources","-I","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/Modules","-target","arm64-apple-macosx14.0","-incremental","-enable-batch-mode","-serialize-diagnostics","-index-store-path","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/index/store","-Onone","-enable-testing","-j12","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE","-module-cache-path","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/ModuleCache","-parseable-output","-Xfrontend","-entry-point-function-name","-Xfrontend","WhisperDiarize_main","-swift-version","6","-plugin-path","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-Xcc","-fPIC","-Xcc","-g","-package-name","app"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/","/Users/jacobwang/codebase/personal/process-audio/app/Package.swift","/Users/jacobwang/codebase/personal/process-audio/app/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+
+  "WhisperDiarize-arm64-apple-macosx26.0-debug.module-resources":
+    tool: phony
+    inputs: ["/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize_WhisperDiarize.bundle/pyproject.toml","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize_WhisperDiarize.bundle/transcribe.py","/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize_WhisperDiarize.bundle/uv.lock"]
+    outputs: ["<WhisperDiarize-arm64-apple-macosx26.0-debug.module-resources>"]
+

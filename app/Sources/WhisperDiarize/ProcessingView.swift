@@ -56,7 +56,7 @@ struct ProcessingView: View {
         if line.hasPrefix("✅") { return .green }
         if line.hasPrefix("❌") { return .red }
         if line.hasPrefix("🎙️") || line.hasPrefix("👥") || line.hasPrefix("🔀") || line.hasPrefix("💾") || line.hasPrefix("💨") {
-            return .accent
+            return Color.accentColor
         }
         if line.contains("Error") || line.contains("error") { return .red }
         return .secondary

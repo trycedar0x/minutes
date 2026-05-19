@@ -1,0 +1,68 @@
+{
+  "": {
+    "swift-dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/master.swiftdeps"
+  },
+  "/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/App.swift": {
+    "dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/App.d",
+    "object": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/App.swift.o",
+    "swiftmodule": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/App~partial.swiftmodule",
+    "swift-dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/App.swiftdeps",
+    "diagnostics": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/App.dia"
+  },
+  "/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/ContentView.swift": {
+    "dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ContentView.d",
+    "object": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ContentView.swift.o",
+    "swiftmodule": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ContentView.swiftdeps",
+    "diagnostics": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ContentView.dia"
+  },
+  "/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/DropZoneView.swift": {
+    "dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/DropZoneView.d",
+    "object": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/DropZoneView.swift.o",
+    "swiftmodule": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/DropZoneView~partial.swiftmodule",
+    "swift-dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/DropZoneView.swiftdeps",
+    "diagnostics": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/DropZoneView.dia"
+  },
+  "/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/ErrorView.swift": {
+    "dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ErrorView.d",
+    "object": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ErrorView.swift.o",
+    "swiftmodule": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ErrorView~partial.swiftmodule",
+    "swift-dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ErrorView.swiftdeps",
+    "diagnostics": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ErrorView.dia"
+  },
+  "/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/ProcessingView.swift": {
+    "dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ProcessingView.d",
+    "object": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ProcessingView.swift.o",
+    "swiftmodule": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ProcessingView~partial.swiftmodule",
+    "swift-dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ProcessingView.swiftdeps",
+    "diagnostics": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/ProcessingView.dia"
+  },
+  "/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/SettingsView.swift": {
+    "dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/SettingsView.d",
+    "object": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/SettingsView.swift.o",
+    "swiftmodule": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/SettingsView~partial.swiftmodule",
+    "swift-dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/SettingsView.swiftdeps",
+    "diagnostics": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/SettingsView.dia"
+  },
+  "/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/TranscriptView.swift": {
+    "dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptView.d",
+    "object": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptView.swift.o",
+    "swiftmodule": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptView~partial.swiftmodule",
+    "swift-dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptView.swiftdeps",
+    "diagnostics": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptView.dia"
+  },
+  "/Users/jacobwang/codebase/personal/process-audio/app/Sources/WhisperDiarize/TranscriptionRunner.swift": {
+    "dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptionRunner.d",
+    "object": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptionRunner.swift.o",
+    "swiftmodule": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptionRunner~partial.swiftmodule",
+    "swift-dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptionRunner.swiftdeps",
+    "diagnostics": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/TranscriptionRunner.dia"
+  },
+  "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/DerivedSources/resource_bundle_accessor.swift": {
+    "dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/resource_bundle_accessor.d",
+    "object": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/resource_bundle_accessor.swift.o",
+    "swiftmodule": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/resource_bundle_accessor~partial.swiftmodule",
+    "swift-dependencies": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/resource_bundle_accessor.swiftdeps",
+    "diagnostics": "/Users/jacobwang/codebase/personal/process-audio/app/.build/arm64-apple-macosx/debug/WhisperDiarize.build/resource_bundle_accessor.dia"
+  }
+}
