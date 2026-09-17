@@ -9,7 +9,7 @@
     <key>CFBundleDisplayName</key>
     <string>Minutes</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>__APP_BUILD__</string>
     <key>CFBundleShortVersionString</key>
     <string>__APP_VERSION__</string>
     <key>CFBundleExecutable</key>

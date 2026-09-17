@@ -8,7 +8,7 @@ run:
 	@mkdir -p app/.build/Minutes.app/Contents/MacOS
 	@mkdir -p app/.build/Minutes.app/Contents/Resources
 	cp app/.build/debug/Minutes app/.build/Minutes.app/Contents/MacOS/
-	sed "s/__APP_VERSION__/dev/g" app/Sources/Minutes/Info.plist > app/.build/Minutes.app/Contents/Info.plist
+	sed -e "s/__APP_VERSION__/dev/g" -e "s/__APP_BUILD__/1/g" app/Sources/Minutes/Info.plist > app/.build/Minutes.app/Contents/Info.plist
 	@cp -r app/.build/debug/Minutes_Minutes.bundle app/.build/Minutes.app/Contents/Resources/ 2>/dev/null || true
 	codesign --force --deep --sign - app/.build/Minutes.app
 	open app/.build/Minutes.app
