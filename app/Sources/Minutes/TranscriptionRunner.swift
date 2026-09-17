@@ -245,11 +245,68 @@ final class TranscriptionRunner: ObservableObject {
         let envURL = resourcesURL.appendingPathComponent("Python", isDirectory: true)
         for name in ["python3", "python"] {
             let pythonURL = envURL.appendingPathComponent("bin/\(name)")
-            if FileManager.default.isExecutableFile(atPath: pythonURL.path) {
+            guard FileManager.default.isExecutableFile(atPath: pythonURL.path) else { continue }
+            clearQuarantineAlongPath(to: pythonURL)
+            // A bundled interpreter can exist and still be unusable (quarantined,
+            // broken seal, wrong architecture), so only commit to it if it runs.
+            // Otherwise the uv fallback still gets a chance.
+            if isUsable(pythonURL) {
                 return .bundled(pythonURL: pythonURL, envURL: envURL)
             }
         }
         return nil
+    }
+
+    private func isUsable(_ pythonURL: URL) -> Bool {
+        runQuietly(pythonURL, ["-c", "import sys"]) == 0
+    }
+
+    /// Gatekeeper refuses to spawn a quarantined helper binary, and the flag is
+    /// inherited from every ancestor directory, so a downloaded build has to shed
+    /// it from the interpreter's whole path before use. Only our own bundle is
+    /// touched, and only after the user already launched the app; from a
+    /// read-only volume (running straight out of the DMG) this fails harmlessly
+    /// and the uv fallback takes over instead.
+    private func clearQuarantineAlongPath(to executableURL: URL) {
+        let xattr = URL(fileURLWithPath: "/usr/bin/xattr")
+        guard FileManager.default.isExecutableFile(atPath: xattr.path) else { return }
+
+        // Cheap probe: nothing to do unless this copy came from a download.
+        guard runQuietly(xattr, ["-p", "com.apple.quarantine", Bundle.main.bundleURL.path]) == 0 else {
+            return
+        }
+
+        let bundlePath = Bundle.main.bundleURL.path
+        let resolved = executableURL.resolvingSymlinksInPath()
+        var targets: Set<String> = []
+        for start in [executableURL.path, resolved.path, resolved.deletingLastPathComponent().path] {
+            var path = start
+            while path != "/" {
+                targets.insert(path)
+                if path == bundlePath { break }
+                path = (path as NSString).deletingLastPathComponent
+            }
+        }
+
+        for path in targets.sorted() {
+            runQuietly(xattr, ["-d", "com.apple.quarantine", path])
+        }
+    }
+
+    @discardableResult
+    private func runQuietly(_ executable: URL, _ arguments: [String]) -> Int32 {
+        let process = Process()
+        process.executableURL = executable
+        process.arguments = arguments
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+        } catch {
+            return -1
+        }
+        process.waitUntilExit()
+        return process.terminationStatus
     }
 
     private func findUV() -> String? {
