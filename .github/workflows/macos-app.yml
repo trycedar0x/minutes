@@ -18,7 +18,11 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          # `git describe` (used for the default APP_VERSION) needs tags.
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Install uv
         run: |
@@ -34,10 +38,14 @@ jobs:
         run: make test
 
       - name: Package app
+        env:
+          # On a release, the tag wins so the app reports the released version.
+          APP_VERSION: ${{ github.event.release.tag_name }}
+          APP_BUILD: ${{ github.run_number }}
         run: make package
 
       - name: Upload packaged app artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Minutes-macos-arm64
           path: dist/Minutes-macos-arm64.zip
