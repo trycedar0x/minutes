@@ -44,6 +44,16 @@ jobs:
           APP_BUILD: ${{ github.run_number }}
         run: make package
 
+      # Guards the two ways a packaged build has shipped broken: an interpreter
+      # that does not resolve (dangling uv symlink) and writes into the sealed
+      # bundle on first run.
+      - name: Smoke test the packaged app
+        run: |
+          APP="dist/Minutes.app"
+          "$APP/Contents/Resources/Python/bin/python3" -c "import mlx_whisper"
+          "$APP/Contents/Resources/Python/bin/python3" "$APP/Contents/Resources/Minutes_Minutes.bundle/transcribe.py" --help >/dev/null
+          codesign --verify --strict --verbose=2 "$APP"
+
       - name: Upload packaged app artifact
         uses: actions/upload-artifact@v7
         with:

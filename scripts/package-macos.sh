@@ -100,16 +100,19 @@ if [[ "$BUNDLE_PYTHON" == "1" ]]; then
     --no-bin \
     "$PYTHON_VERSION"
 
-  RUNTIME_PYTHON="$(UV_PYTHON_INSTALL_DIR="$PYTHON_RUNTIME" uv python find \
-    --python-preference only-managed "$PYTHON_VERSION")"
+  # Use the versioned interpreter directory, not uv's `cpython-3.11-...` alias:
+  # that alias is an absolute symlink back into the build tree.
+  RUNTIME_PYTHON=""
+  for candidate in "$PYTHON_RUNTIME"/cpython-*/bin/python"$PYTHON_VERSION"; do
+    runtime_dir="$(dirname "$(dirname "$candidate")")"
+    [[ -L "$runtime_dir" ]] && continue
+    [[ -x "$candidate" ]] && RUNTIME_PYTHON="$candidate" && break
+  done
 
-  case "$RUNTIME_PYTHON" in
-    "$PYTHON_RUNTIME"/*) ;;
-    *)
-      echo "error: interpreter $RUNTIME_PYTHON is not inside the app bundle" >&2
-      exit 1
-      ;;
-  esac
+  if [[ -z "$RUNTIME_PYTHON" ]]; then
+    echo "error: no standalone interpreter was installed under $PYTHON_RUNTIME" >&2
+    exit 1
+  fi
 
   echo "==> Creating bundled virtual environment"
   uv venv \
@@ -118,12 +121,6 @@ if [[ "$BUNDLE_PYTHON" == "1" ]]; then
     --python "$RUNTIME_PYTHON" \
     "$PYTHON_ENV"
 
-  # Rewrite bin/python as a relative link into the bundled runtime, so the app
-  # works from /Applications, ~/Downloads, or the mounted DMG.
-  RELATIVE_PYTHON="$(python3 -c 'import os.path, sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' \
-    "$RUNTIME_PYTHON" "$PYTHON_ENV/bin")"
-  ln -sfn "$RELATIVE_PYTHON" "$PYTHON_ENV/bin/python"
-
   echo "==> Installing Python dependencies into app bundle"
   uv pip install \
     --python "$PYTHON_ENV/bin/python" \
@@ -131,18 +128,82 @@ if [[ "$BUNDLE_PYTHON" == "1" ]]; then
     --link-mode copy \
     --compile-bytecode
 
+  echo "==> Making the bundled environment relocatable"
+  # bin/python must reach the interpreter through the bundle, never through the
+  # directory the app happened to be built in.
+  ln -sfn "$(python3 -c 'import os.path, sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' \
+    "$RUNTIME_PYTHON" "$PYTHON_ENV/bin")" \
+    "$PYTHON_ENV/bin/python"
+
+  for alias in "$PYTHON_RUNTIME"/cpython-*; do
+    [[ -L "$alias" ]] || continue
+    target="$(python3 -c 'import os, sys; print(os.readlink(sys.argv[1]))' "$alias")"
+    [[ "$target" == /* ]] || continue
+    ln -sfn "$(python3 -c 'import os.path, sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' \
+      "$target" "$(dirname "$alias")")" "$alias"
+  done
+
+  python3 - "$PYTHON_ENV/pyvenv.cfg" "$(dirname "$RUNTIME_PYTHON")" "$PYTHON_ENV/bin" <<'PY'
+import os.path
+import sys
+
+cfg, runtime_bin, venv_bin = sys.argv[1:4]
+home = os.path.relpath(runtime_bin, venv_bin)
+lines = open(cfg).read().splitlines()
+with open(cfg, "w") as handle:
+    handle.write("\n".join(f"home = {home}" if line.startswith("home =") else line
+                          for line in lines) + "\n")
+PY
+
+  rm -rf "$PYTHON_RUNTIME/.temp" "$PYTHON_RUNTIME/.lock"
+
+  # Compile the bundled standard library up front. Any module that is still
+  # uncompiled on first launch would be written into the (already sealed) app
+  # bundle, and the app must never modify itself.
+  echo "==> Pre-compiling bundled standard library"
+  "$PYTHON_ENV/bin/python3" -m compileall -q "$PYTHON_RUNTIME"/cpython-*/lib/python"$PYTHON_VERSION" \
+    >/dev/null
+
   echo "==> Verifying bundled Python runtime"
   if [[ ! -x "$PYTHON_ENV/bin/python3" ]]; then
     echo "error: bundled interpreter is not executable: $PYTHON_ENV/bin/python3" >&2
     exit 1
   fi
 
-  "$PYTHON_ENV/bin/python3" - <<'PY'
+  # A link that resolves outside the bundle works on the build host and breaks
+  # the moment the app is moved to /Applications, so fail the build instead.
+  python3 - "$APP_BUNDLE" <<'PY'
+import os
+import sys
+
+root = os.path.realpath(sys.argv[1])
+escaped = []
+for dirpath, dirnames, filenames in os.walk(root):
+    for name in dirnames + filenames:
+        path = os.path.join(dirpath, name)
+        if not os.path.islink(path):
+            continue
+        target = os.path.realpath(path)
+        if target != root and not target.startswith(root + os.sep):
+            escaped.append((os.path.relpath(path, root), os.readlink(path)))
+
+for rel, link in escaped:
+    print(f"  escapes the bundle: {rel} -> {link}", file=sys.stderr)
+if escaped:
+    print(f"error: {len(escaped)} link(s) resolve outside {root}", file=sys.stderr)
+    sys.exit(1)
+print("  no link escapes the bundle")
+PY
+
+  "$PYTHON_ENV/bin/python3" - "$APP_BUNDLE" <<'PY'
 import os
 import platform
 import sys
 
+root = os.path.realpath(sys.argv[1])
 real = os.path.realpath(sys.executable)
+if not real.startswith(root + os.sep):
+    sys.exit(f"error: interpreter {real} is outside {root}")
 print(f"Bundled Python: {sys.version.split()[0]} ({platform.machine()})")
 print(f"  interpreter: {real}")
 print(f"  site-packages: {sys.prefix}/lib")

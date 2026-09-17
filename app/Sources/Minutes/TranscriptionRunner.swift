@@ -270,6 +270,9 @@ final class TranscriptionRunner: ObservableObject {
         }
         env["PATH"] = extra + ":" + (env["PATH"] ?? "/usr/bin:/bin")
         env["PYTHONUNBUFFERED"] = "1"   // force unbuffered output so lines stream immediately
+        // Never write bytecode into the app bundle: that invalidates the code
+        // signature seal on first run, and fails outright from a read-only DMG.
+        env["PYTHONDONTWRITEBYTECODE"] = "1"
         return env
     }
 }
