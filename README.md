@@ -101,13 +101,13 @@ dist/Minutes-macos-arm64.zip
 
 The package script:
 
-1. Builds the Swift app in release mode
-2. Creates a macOS `.app` bundle
-3. Copies the app binary, `Info.plist`, app icon, and SwiftPM resources
-4. Creates a relocatable uv-managed Python 3.11 environment in `Contents/Resources/Python`
-5. Installs the locked Python dependencies into the app bundle
-6. Ad-hoc signs the app by default
-7. Creates `dist/Minutes-macos-arm64.zip`
+- Builds the Swift app in release mode
+- Creates a macOS `.app` bundle
+- Copies the app binary, `Info.plist`, app icon, and SwiftPM resources
+- Installs a standalone CPython into `Contents/Resources/PythonRuntime` and creates `Contents/Resources/Python` against it (`bin/python` is a *relative* link, so the app works from `/Applications`, `~/Downloads`, or the mounted DMG)
+- Installs the locked Python dependencies into the app bundle
+- Ad-hoc signs the app by default
+- Creates `dist/Minutes-macos-arm64.dmg` (HFS+ volume — the APFS default produced a ~45% larger image) and `dist/Minutes-macos-arm64.zip`
 
 Long term, a dedicated Xcode macOS app target would make archive, signing, icons, and notarization cleaner than manually wrapping a SwiftPM executable.
 
@@ -121,7 +121,7 @@ GitHub Actions builds the packaged macOS app on pushes to `main`, manual workflo
 - artifact: `Minutes-macos-arm64.zip`
 - release asset: attached automatically when a GitHub Release is published
 
-Release builds are ad-hoc signed by default. Use a Developer ID certificate and notarization for broad distribution outside your own machines.
+Release builds get their version from the release tag (`v0.2.0` → `CFBundleShortVersionString 0.2.0`, `CFBundleVersion` from the workflow run number) and are **ad-hoc signed** — not notarized, so Gatekeeper blocks the first launch. On macOS 15+ the old Control-click → Open shortcut no longer works: use **System Settings → Privacy & Security → “Open Anyway”**, or clear the flag from Terminal with `xattr -dr com.apple.quarantine /Applications/Minutes.app`. For distribution without that detour, sign with a Developer ID certificate and notarize.
 
 ---
 
