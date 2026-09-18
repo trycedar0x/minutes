@@ -5,6 +5,7 @@ struct DropZoneView: View {
     @EnvironmentObject private var runner: TranscriptionRunner
     @AppStorage("hfToken") private var hfToken = ""
     @Environment(\.openSettings) private var openSettings
+    @AppStorage("transcriptionBackend") private var transcriptionBackend = "whisper"
     @AppStorage("model") private var model = "mlx-community/whisper-large-v3-mlx"
     @AppStorage("language") private var language = ""
     @AppStorage("speakers") private var speakersRaw = 0
@@ -19,6 +20,7 @@ struct DropZoneView: View {
         HStack(spacing: 0) {
             IntakeSidebar(
                 hfToken: $hfToken,
+                transcriptionBackend: $transcriptionBackend,
                 model: $model,
                 language: $language,
                 speakersRaw: $speakersRaw,
@@ -79,6 +81,7 @@ struct DropZoneView: View {
             await runner.transcribe(
                 audioURL: url,
                 hfToken: hfToken,
+                backend: transcriptionBackend,
                 model: model,
                 language: language,
                 speakers: speakers,
@@ -160,6 +163,7 @@ private struct DropTarget: View {
 
 private struct IntakeSidebar: View {
     @Binding var hfToken: String
+    @Binding var transcriptionBackend: String
     @Binding var model: String
     @Binding var language: String
     @Binding var speakersRaw: Int
@@ -180,19 +184,38 @@ private struct IntakeSidebar: View {
                 Divider()
 
                 VStack(alignment: .leading, spacing: AppDesign.Spacing.xs) {
-                    Text("Model")
+                    Text("Backend")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
-                    Picker("", selection: $model) {
-                        Text("large-v3").tag("mlx-community/whisper-large-v3-mlx")
-                        Text("large-v3-turbo").tag("mlx-community/whisper-large-v3-turbo")
-                        Text("medium").tag("mlx-community/whisper-medium-mlx")
-                        Text("small").tag("mlx-community/whisper-small-mlx")
-                        Text("Breeze zh-en").tag("Kenji8000/Breeze-ASR-25-mlx")
+                    Picker("", selection: $transcriptionBackend) {
+                        Text("Whisper").tag("whisper")
+                        Text("Qwen3-ASR · Experimental").tag("qwen3-asr")
                     }
                     .labelsHidden()
                     .pickerStyle(.menu)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                if transcriptionBackend == "whisper" {
+                    VStack(alignment: .leading, spacing: AppDesign.Spacing.xs) {
+                        Text("Model")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        Picker("", selection: $model) {
+                            Text("large-v3").tag("mlx-community/whisper-large-v3-mlx")
+                            Text("large-v3-turbo").tag("mlx-community/whisper-large-v3-turbo")
+                            Text("medium").tag("mlx-community/whisper-medium-mlx")
+                            Text("small").tag("mlx-community/whisper-small-mlx")
+                            Text("Breeze zh-en").tag("Kenji8000/Breeze-ASR-25-mlx")
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                } else {
+                    Text("Qwen3-ASR 1.7B + ForcedAligner 0.6B")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
                 VStack(alignment: .leading, spacing: AppDesign.Spacing.xs) {

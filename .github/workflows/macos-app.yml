@@ -50,7 +50,7 @@ jobs:
       - name: Smoke test the packaged app
         run: |
           APP="dist/Minutes.app"
-          "$APP/Contents/Resources/Python/bin/python3" -c "import mlx_whisper"
+          "$APP/Contents/Resources/Python/bin/python3" -c "import mlx_whisper; from mlx_qwen3_asr import ForcedAligner, transcribe"
           "$APP/Contents/Resources/Python/bin/python3" "$APP/Contents/Resources/Minutes_Minutes.bundle/transcribe.py" --help >/dev/null
           codesign --verify --strict --verbose=2 "$APP"
 

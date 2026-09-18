@@ -24,12 +24,12 @@ struct ContentView: View {
                     Button {
                         copyTranscript()
                     } label: {
-                        Label("Copy", systemImage: "doc.on.doc")
+                        Label("Copy transcript", systemImage: "doc.on.doc")
                     }
                     Button {
                         saveTranscript()
                     } label: {
-                        Label("Save…", systemImage: "arrow.down.circle")
+                        Label("Save transcript…", systemImage: "arrow.down.circle")
                     }
                     Divider()
                 }

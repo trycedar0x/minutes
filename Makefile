@@ -1,6 +1,6 @@
 APP_RESOURCES = app/Sources/Minutes/Resources
 
-.PHONY: sync-app-resources test test-ui run package
+.PHONY: sync-app-resources test test-python test-swift test-ui run package
 
 # Build a proper .app bundle, ad-hoc sign it, and launch
 run:
@@ -24,8 +24,15 @@ sync-app-resources:
 	cp uv.lock         $(APP_RESOURCES)/uv.lock
 	@echo "✅ App resources synced"
 
-# Run unit tests (no Xcode required, CI-friendly)
-test:
+# Run Python worker tests first, then Swift tests. Swift XCTest requires the
+# full Xcode toolchain; with Command Line Tools only, test-swift reports the
+# existing `no such module XCTest` environment error after Python has passed.
+test: test-python test-swift
+
+test-python:
+	uv run python -m unittest discover -s tests -v
+
+test-swift:
 	cd app && swift test --filter MinutesTests
 
 # Run UI tests — requires opening app/Package.swift in Xcode first, then ⌘U

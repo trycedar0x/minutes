@@ -2,11 +2,13 @@ import SwiftUI
 
 struct SettingsView: View {
     @AppStorage("hfToken") private var hfToken = ""
+    @AppStorage("transcriptionBackend") private var transcriptionBackend = "whisper"
     @AppStorage("model") private var model = "mlx-community/whisper-large-v3-mlx"
     @AppStorage("language") private var language = ""
     @AppStorage("speakers") private var speakersRaw = 0
     @AppStorage("polish") private var polish = false
     @AppStorage("polishModel") private var polishModel = "mlx-community/Qwen2.5-7B-Instruct-4bit"
+    @AppStorage("notesModel") private var notesModel = "mlx-community/Qwen2.5-7B-Instruct-4bit"
     @FocusState private var focusedField: SettingsFocusedField?
 
     var body: some View {
@@ -35,17 +37,32 @@ struct SettingsView: View {
                 }
 
                 SettingsSection("Transcription", subtitle: "Defaults for each new file.") {
-                    SettingsRow("Model", detail: selectedModelDetail) {
+                    SettingsRow("Backend", detail: backendDetail) {
                         SettingsControlFrame {
-                            Picker("", selection: $model) {
-                                Text("large-v3").tag("mlx-community/whisper-large-v3-mlx")
-                                Text("large-v3-turbo").tag("mlx-community/whisper-large-v3-turbo")
-                                Text("medium").tag("mlx-community/whisper-medium-mlx")
-                                Text("small").tag("mlx-community/whisper-small-mlx")
-                                Text("Breeze zh-en").tag("Kenji8000/Breeze-ASR-25-mlx")
+                            Picker("", selection: $transcriptionBackend) {
+                                Text("Whisper · Default").tag("whisper")
+                                Text("Qwen3-ASR · Experimental").tag("qwen3-asr")
                             }
                             .labelsHidden()
                             .pickerStyle(.menu)
+                        }
+                    }
+
+                    if transcriptionBackend == "whisper" {
+                        RowDivider()
+
+                        SettingsRow("Model", detail: selectedModelDetail) {
+                            SettingsControlFrame {
+                                Picker("", selection: $model) {
+                                    Text("large-v3").tag("mlx-community/whisper-large-v3-mlx")
+                                    Text("large-v3-turbo").tag("mlx-community/whisper-large-v3-turbo")
+                                    Text("medium").tag("mlx-community/whisper-medium-mlx")
+                                    Text("small").tag("mlx-community/whisper-small-mlx")
+                                    Text("Breeze zh-en").tag("Kenji8000/Breeze-ASR-25-mlx")
+                                }
+                                .labelsHidden()
+                                .pickerStyle(.menu)
+                            }
                         }
                     }
 
@@ -73,7 +90,7 @@ struct SettingsView: View {
                     }
                 }
 
-                SettingsSection("Cleanup", subtitle: "Optional local LLM pass.") {
+                SettingsSection("Local AI", subtitle: "On-device notes and optional transcript cleanup.") {
                     SettingsRow("Polish Transcript", detail: "Improve punctuation and readability.") {
                         SettingsControlFrame {
                             Toggle("", isOn: $polish)
@@ -82,10 +99,23 @@ struct SettingsView: View {
                         }
                     }
 
+                    RowDivider()
+
+                    SettingsRow("Notes Model", detail: "14B improves extraction but takes longer; use it with 24 GB memory.") {
+                        SettingsControlFrame {
+                            Picker("", selection: $notesModel) {
+                                Text("Qwen2.5 7B · Faster").tag("mlx-community/Qwen2.5-7B-Instruct-4bit")
+                                Text("Qwen3 14B · Higher recall").tag("mlx-community/Qwen3-14B-4bit-DWQ-053125")
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                        }
+                    }
+
                     if polish {
                         RowDivider()
 
-                        SettingsRow("Polish Model", detail: "Downloaded the first time it runs.") {
+                        SettingsRow("Cleanup Model", detail: "Used only to polish the transcript.") {
                             SettingsControlFrame {
                                 Picker("", selection: $polishModel) {
                                     Text("Qwen2.5 1.5B").tag("mlx-community/Qwen2.5-1.5B-Instruct-4bit")
@@ -120,6 +150,12 @@ struct SettingsView: View {
                 focusedField = nil
             }
         }
+    }
+
+    private var backendDetail: String {
+        transcriptionBackend == "qwen3-asr"
+            ? "Qwen3-ASR 1.7B with ForcedAligner 0.6B; falls back to Whisper on failure."
+            : "Stable default with word timestamps."
     }
 
     private var selectedModelDetail: String {

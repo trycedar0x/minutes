@@ -16,16 +16,24 @@ final class TranscriptionRunner: ObservableObject {
     @Published var stepProgress: [Int: Double] = [:] // 0.0–1.0 per step
     @Published var startTime: Date? = nil
 
+    @Published var meetingNotes: MeetingNotes?
+    @Published var notesGenerating = false
+    @Published var notesError: String?
+    private var notesProcess: Process?
+    private var notesRunID: UUID?
+
     private var process: Process?
     private(set) var lastAudioURL: URL?
-    private(set) var lastArgs: (hfToken: String, model: String, language: String,
+    private(set) var lastArgs: (hfToken: String, backend: String, model: String, language: String,
                                 speakers: Int?, polish: Bool, polishModel: String)?
 
     // MARK: - Public API
 
-    func transcribe(audioURL: URL, hfToken: String, model: String, language: String, speakers: Int?,
-                    polish: Bool = false, polishModel: String = "mlx-community/Qwen2.5-7B-Instruct-4bit",
+    func transcribe(audioURL: URL, hfToken: String, backend: String = "whisper", model: String,
+                    language: String, speakers: Int?, polish: Bool = false,
+                    polishModel: String = "mlx-community/Qwen2.5-7B-Instruct-4bit",
                     force: Bool = false) async {
+        clearMeetingNotes()
         state = .running(phase: "Preparing…")
         logLines = []
         transcript = []
@@ -34,7 +42,7 @@ final class TranscriptionRunner: ObservableObject {
         stepProgress = [:]
         startTime = Date()
         lastAudioURL = audioURL
-        lastArgs = (hfToken, model, language, speakers, polish, polishModel)
+        lastArgs = (hfToken, backend, model, language, speakers, polish, polishModel)
 
         guard let workDir = prepareWorkDir() else {
             state = .failed("Could not set up working directory in Application Support.")
@@ -54,6 +62,7 @@ final class TranscriptionRunner: ObservableObject {
             scriptPath,
             audioURL.path,
             "--output", outputURL.path,
+            "--backend", backend,
             "--model", model,
         ]
         if !hfToken.isEmpty   { scriptArgs += ["--hf-token", hfToken] }
@@ -130,12 +139,13 @@ final class TranscriptionRunner: ObservableObject {
 
     func reprocess() async {
         guard let url = lastAudioURL, let a = lastArgs else { return }
-        await transcribe(audioURL: url, hfToken: a.hfToken, model: a.model,
+        await transcribe(audioURL: url, hfToken: a.hfToken, backend: a.backend, model: a.model,
                          language: a.language, speakers: a.speakers,
                          polish: a.polish, polishModel: a.polishModel, force: true)
     }
 
     func reset() {
+        clearMeetingNotes()
         process = nil
         state = .idle
         logLines = []
@@ -144,6 +154,90 @@ final class TranscriptionRunner: ObservableObject {
         stepDetails = [:]
         stepProgress = [:]
         startTime = nil
+    }
+
+    // MARK: - Local meeting notes
+
+    func cancelMeetingNotes() {
+        notesRunID = nil
+        notesProcess?.terminate()
+        notesProcess = nil
+        notesGenerating = false
+    }
+
+    private func clearMeetingNotes() {
+        cancelMeetingNotes()
+        meetingNotes = nil
+        notesError = nil
+    }
+
+    func generateMeetingNotes(model: String) async {
+        guard !notesGenerating, !transcript.isEmpty else { return }
+        notesError = nil
+        guard let workDir = prepareWorkDir(), let runtime = findPythonRuntime() else {
+            notesError = "Python runtime or worker resources are unavailable."
+            return
+        }
+        let runID = UUID()
+        let snapshot = transcript
+        let directory = workDir.appendingPathComponent("notes-\(runID.uuidString)")
+        notesRunID = runID
+        notesGenerating = true
+        defer {
+            try? FileManager.default.removeItem(at: directory)
+            if notesRunID == runID {
+                notesGenerating = false
+                notesProcess = nil
+                notesRunID = nil
+            }
+        }
+        do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let input = directory.appendingPathComponent("input.json")
+            let output = directory.appendingPathComponent("notes.json")
+            let data = try JSONSerialization.data(withJSONObject: snapshot.map {
+                ["timestamp": $0.timestamp, "speaker": $0.speaker, "text": $0.text]
+            })
+            try data.write(to: input, options: .atomic)
+            let args = [workDir.appendingPathComponent("transcribe.py").path,
+                        "--notes-input", input.path, "--output", output.path, "--polish-model", model]
+            let p = Process()
+            switch runtime {
+            case .bundled(let python, _):
+                p.executableURL = python
+                p.arguments = args
+            case .uv(let path):
+                p.executableURL = URL(fileURLWithPath: path)
+                p.arguments = ["run", "--project", workDir.path] + args
+            }
+            p.currentDirectoryURL = workDir
+            p.environment = enrichedEnv(for: runtime)
+            // A file avoids pipe backpressure during model downloads and generation.
+            let logURL = directory.appendingPathComponent("worker.log")
+            FileManager.default.createFile(atPath: logURL.path, contents: nil)
+            let log = try FileHandle(forWritingTo: logURL)
+            defer { try? log.close() }
+            p.standardOutput = log
+            p.standardError = log
+            notesProcess = p
+            let status: Int32 = try await withCheckedThrowingContinuation { continuation in
+                p.terminationHandler = { process in
+                    continuation.resume(returning: process.terminationStatus)
+                }
+                do { try p.run() }
+                catch { continuation.resume(throwing: error) }
+            }
+            guard notesRunID == runID else { return }
+            guard status == 0 else {
+                let details = (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
+                throw NSError(domain: "MeetingNotes", code: Int(status), userInfo: [
+                    NSLocalizedDescriptionKey: "Could not generate meeting notes. Your transcript is unchanged.\n" + String(details.suffix(2000))
+                ])
+            }
+            meetingNotes = try MeetingNotes.decode(Data(contentsOf: output), transcriptCount: snapshot.count)
+        } catch {
+            if notesRunID == runID { notesError = error.localizedDescription }
+        }
     }
 
     // MARK: - Log ingestion
@@ -214,12 +308,14 @@ final class TranscriptionRunner: ObservableObject {
         let dir = appSupport.appendingPathComponent("Minutes")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
 
-        // Copy bundled resources on first launch (or if missing)
+        // Refresh changed worker resources so upgrades expose new CLI features.
         for (name, ext) in [("transcribe", "py"), ("pyproject", "toml"), ("uv", "lock")] {
             let dst = dir.appendingPathComponent("\(name).\(ext)")
-            guard !FileManager.default.fileExists(atPath: dst.path) else { continue }
-            if let src = AppResources.url(forResource: name, withExtension: ext) {
-                try? FileManager.default.copyItem(at: src, to: dst)
+            guard let src = AppResources.url(forResource: name, withExtension: ext),
+                  let data = try? Data(contentsOf: src) else { return nil }
+            if (try? Data(contentsOf: dst)) != data {
+                do { try data.write(to: dst, options: .atomic) }
+                catch { return nil }
             }
         }
         return dir

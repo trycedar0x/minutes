@@ -4,7 +4,7 @@
 
 - 🔒 **Fully local** — transcription, diarization, and LLM polish all run on-device. No audio ever sent to a server.
 - 🖥️ **Native macOS app** — drag, drop, transcribe, search, copy, and save
-- 🎙️ **Transcription** via [`mlx-whisper`](https://github.com/ml-explore/mlx-examples/tree/main/whisper) — runs on Apple Silicon GPU via MLX
+- 🎙️ **Transcription** via [`mlx-whisper`](https://github.com/ml-explore/mlx-examples/tree/main/whisper), with an experimental local Qwen3-ASR + ForcedAligner backend for mixed-language meetings
 - 👥 **Speaker diarization** via [`pyannote.audio`](https://github.com/pyannote/pyannote-audio) — who said what, automatically, runs on Metal (MPS)
 - ✨ **LLM polish** via [Qwen 2.5](https://huggingface.co/mlx-community/Qwen2.5-7B-Instruct-4bit) — local cleanup of punctuation and readability, no cloud API needed
 - ⚡ **Fast** — all models run natively on Apple Silicon, no GPU server needed
@@ -33,7 +33,7 @@ Everything runs on your Mac:
 
 | Step | Model | Runs on |
 |------|-------|---------|
-| Transcription | mlx-whisper (large-v3) | Apple Silicon GPU (MLX) |
+| Transcription | mlx-whisper (large-v3), or experimental Qwen3-ASR 1.7B + ForcedAligner 0.6B | Apple Silicon GPU (MLX) |
 | Speaker detection | pyannote 3.1 | Metal (MPS) |
 | LLM cleanup | Qwen 2.5 7B | Apple Silicon GPU (MLX) |
 
@@ -58,6 +58,12 @@ The SwiftUI app lives in [`app/`](app/). It provides:
 - live processing state and logs
 - searchable speaker-labeled transcript
 - copy and save actions
+
+After transcription, open **Meeting notes → Generate notes** to create a local summary, decisions, action items, and open questions. Choose the notes model independently in Settings: Qwen2.5 7B is faster, while Qwen3 14B targets higher extraction recall on Macs with 24 GB or more unified memory. The first run may download model weights; transcript content is never uploaded. Click a reference to jump to its transcript line, or use **Copy notes** / **Export…** to save Markdown with referenced passages.
+
+Long meetings are processed in bounded sections covering the entire transcript, not just the opening. Results are combined in transcript order, so later discussion may revise earlier points; this first version does not reconcile those revisions across sections. AI-generated claims still need review: reference IDs are validated, but citations do not prove factual correctness. Unspecified owners and deadlines are shown as “Not specified.” Generation can be canceled or retried without losing the transcript. Notes are held in memory until you start a new transcription or close the app; export anything you want to keep.
+
+Run the normal unit-test gate with `make test`; it runs Python worker tests first, then Swift parsing/export tests. The Swift step requires the full Xcode toolchain and reports `no such module 'XCTest'` when only Command Line Tools are selected.
 
 Run from Xcode:
 
@@ -166,6 +172,10 @@ uv run transcribe.py path/to/audio.wav
 # Faster — specify number of speakers if you know it
 uv run transcribe.py path/to/audio.wav --speakers 2
 
+# Experimental mixed-language backend (falls back to Whisper if inference,
+# cached evidence, alignment validation, or aggregation fails)
+uv run transcribe.py path/to/audio.wav --backend qwen3-asr
+
 # Specify language (skips auto-detection)
 uv run transcribe.py path/to/audio.wav --language en
 
@@ -176,7 +186,7 @@ uv run transcribe.py path/to/audio.wav --output my_transcript.txt
 uv run transcribe.py path/to/audio.wav --hf-token hf_xxxx
 ```
 
-Supported audio formats: `wav`, `mp3`, `m4a`, `mp4`, `flac`, `ogg`, and more.
+Supported audio formats: `wav`, `mp3`, `m4a`, `mp4`, `flac`, `ogg`, and more. Successful Qwen3-ASR runs also save `<output>.qwen3-asr-evidence.json`, containing the exact raw ASR text and original forced-aligned units for auditability; speaker smoothing changes attribution only, never that evidence.
 
 ---
 
@@ -184,7 +194,8 @@ Supported audio formats: `wav`, `mp3`, `m4a`, `mp4`, `flac`, `ogg`, and more.
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--model` | `mlx-community/whisper-large-v3-mlx` | MLX Whisper model to use |
+| `--backend` | `whisper` | `whisper` or experimental `qwen3-asr` (Qwen3-ASR 1.7B + ForcedAligner 0.6B) |
+| `--model` | `mlx-community/whisper-large-v3-mlx` | MLX Whisper model and fallback to use |
 | `--language` | auto-detect | Language code (`en`, `zh`, `es`, …) |
 | `--speakers` | auto-detect | Number of speakers in the audio |
 | `--output` | `<audio>_transcript.txt` | Output file path |

@@ -5,7 +5,38 @@ private let speakerPalette: [Color] = [
     AppDesign.Palette.accent, AppDesign.Palette.amber, AppDesign.Palette.rose, .blue, .teal, .indigo, .pink, .cyan
 ]
 
+@MainActor
 struct TranscriptView: View {
+    @EnvironmentObject private var runner: TranscriptionRunner
+    @State private var showNotes = false
+    @State private var sourceID: UUID?
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Picker("View", selection: $showNotes) {
+                Text("Transcript").tag(false)
+                Text("Meeting notes").tag(true)
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 300)
+            .padding()
+            Divider()
+            if showNotes {
+                MeetingNotesView { index in
+                    guard runner.transcript.indices.contains(index - 1) else { return }
+                    sourceID = runner.transcript[index - 1].id
+                    showNotes = false
+                }
+            } else {
+                TranscriptDetailView(sourceID: sourceID)
+            }
+        }
+    }
+}
+
+@MainActor
+private struct TranscriptDetailView: View {
+    let sourceID: UUID?
     @EnvironmentObject private var runner: TranscriptionRunner
     @State private var searchText = ""
     @State private var selectedSpeaker: String? = nil
@@ -41,14 +72,21 @@ struct TranscriptView: View {
 
                 Divider()
 
-                ScrollView(.vertical) {
-                    LazyVStack(alignment: .leading, spacing: 0) {
-                        ForEach(filtered) { line in
-                            TranscriptLineRow(line: line)
-                            Divider().padding(.leading, AppDesign.Layout.timestampWidth - AppDesign.Spacing.lg)
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical) {
+                        LazyVStack(alignment: .leading, spacing: 0) {
+                            ForEach(filtered) { line in
+                                TranscriptLineRow(line: line)
+                                    .background(line.id == sourceID ? Color.accentColor.opacity(0.1) : Color.clear)
+                                    .id(line.id)
+                                Divider().padding(.leading, AppDesign.Layout.timestampWidth - AppDesign.Spacing.lg)
+                            }
                         }
+                        .padding(.vertical, AppDesign.Spacing.sm)
                     }
-                    .padding(.vertical, AppDesign.Spacing.sm)
+                    .onAppear {
+                        if let sourceID { proxy.scrollTo(sourceID, anchor: .center) }
+                    }
                 }
                 .background(Color(nsColor: .textBackgroundColor).opacity(0.45))
             }

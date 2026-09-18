@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ErrorView: View {
     @EnvironmentObject private var runner: TranscriptionRunner
+    @State private var showLog = false
     let message: String
 
     var body: some View {
@@ -35,9 +36,9 @@ struct ErrorView: View {
 
                         HStack(spacing: AppDesign.Spacing.md) {
                             Button {
-                                runner.state = .running(phase: "")
+                                showLog.toggle()
                             } label: {
-                                Label("Show Log", systemImage: "terminal")
+                                Label(showLog ? "Hide Log" : "Show Log", systemImage: "terminal")
                             }
                             .buttonStyle(.bordered)
 
@@ -49,6 +50,25 @@ struct ErrorView: View {
                             .buttonStyle(.borderedProminent)
                         }
                         .padding(.top, AppDesign.Spacing.xs)
+
+                        if showLog {
+                            Divider()
+                            ScrollView {
+                                LazyVStack(alignment: .leading, spacing: 2) {
+                                    ForEach(Array(runner.logLines.enumerated()), id: \.offset) { _, line in
+                                        Text(line)
+                                            .font(AppDesign.TypeScale.monoLog)
+                                            .foregroundStyle(line.lowercased().contains("error") ? AppDesign.rose : .secondary)
+                                            .textSelection(.enabled)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                }
+                                .padding(AppDesign.Spacing.md)
+                            }
+                            .frame(minHeight: 120, maxHeight: 280)
+                            .background(Color(nsColor: .textBackgroundColor))
+                            .clipShape(RoundedRectangle(cornerRadius: AppDesign.Radius.control, style: .continuous))
+                        }
                     }
                 }
                 Spacer()

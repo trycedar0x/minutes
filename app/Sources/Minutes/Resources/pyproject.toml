@@ -7,6 +7,7 @@ dependencies = [
     "deepmultilingualpunctuation>=1.0.1",
     "jiwer>=4.0.0",
     "mlx-lm>=0.31.3",
+    "mlx-qwen3-asr[aligner]>=0.4.0,<0.5",
     "mlx-whisper>=0.4.3",
     "pyannote-audio==4.0.4",
     "pyannote-metrics>=4.1",
